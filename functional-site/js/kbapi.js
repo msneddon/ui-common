@@ -85,7 +85,8 @@ function KBCacheClient(token) {
     var auth = {};
     auth.token = token;
 
-    console.log(auth.token)
+
+    console.log('token', auth.token)
     if (typeof configJSON != 'undefined') {
         if (configJSON.setup == 'dev') {
             fba_url = configJSON.dev.fba_url;

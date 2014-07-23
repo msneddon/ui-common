@@ -520,17 +520,22 @@ app.run(function ($rootScope, $state, $stateParams, $location) {
             if (c.kbase_sessionid) {
                 // USER_ID = $("#signin-button").kbaseLogin('session').user_id;
                 // USER_TOKEN = $("#signin-button").kbaseLogin('session').token;
-                $location.path('/narratives/my-narratives/');
+                setupRootScope($rootScope, $state, $stateParams)
+                $state.go('narratives.featured')
+                //$location.path('/narratives/my-narratives/');
             }
             $rootScope.$apply();
         }
-        window.location.reload();
+        //window.location.reload();
     };
 
     var finish_logout = function() {
-        $location.path('/login/');
-//        $rootScope.$apply();
-        window.location.reload();
+        //$location.path('/login/');
+        setupRootScope($rootScope, $state, $stateParams);
+        $state.go('login');
+
+        $rootScope.$apply();
+        //window.location.reload();
     };
 
     // sign in button
@@ -538,16 +543,15 @@ app.run(function ($rootScope, $state, $stateParams, $location) {
                                     logout_callback: finish_logout});
     $('#signin-button').css('padding', '0');  // Jim!
 
+});
+
+function setupRootScope($rootScope, $state, $stateParams) {
     USER_ID = $("#signin-button").kbaseLogin('session').user_id;
     USER_TOKEN = $("#signin-button").kbaseLogin('session').token;
     kb = new KBCacheClient(USER_TOKEN);
     kb.nar.ensure_home_project(USER_ID);
 
-
     $rootScope.USER_ID = (typeof USER_ID == 'undefined' ? false : USER_ID);
-
-    console.log(USER_TOKEN);
-
 
     // global state object to store state
     state = new State();
@@ -556,10 +560,8 @@ app.run(function ($rootScope, $state, $stateParams, $location) {
     $rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.kb = kb;     
-    $rootScope.Object = Object;       
-
-});
-
+    $rootScope.Object = Object;
+}
 
 /*
  *   landing page app helper functions

@@ -479,7 +479,7 @@ app.controller('RxnDetail', function($scope, $stateParams) {
 
 })
 
-.controller('Narrative', function($scope, $stateParams, $location, kbaseLogin, $modal, FeedLoad) {
+.controller('Narrative', function($rootScope, $scope, $state, $stateParams, $location, kbaseLogin, $modal, FeedLoad) {
     //changeNav('narrative', 'newsfeed');
     $scope.nar_url = configJSON.narrative_url; // used for links to narratives
 
@@ -526,15 +526,22 @@ app.controller('RxnDetail', function($scope, $stateParams) {
 
                     //this.data('_session', c);
 
-                    USER_ID = $("#signin-button").kbaseLogin('session').user_id;
-                    USER_TOKEN = $("#signin-button").kbaseLogin('session').token;
+                    //USER_ID = $("#signin-button").kbaseLogin('session').user_id;
+                    //USER_TOKEN = $("#signin-button").kbaseLogin('session').token;
+
 
                     //kb = new KBCacheClient(USER_TOKEN);
-                    kb.nar.ensure_home_project(USER_ID);
+                    //kb.nar.ensure_home_project(USER_ID);
 
-                    $location.path('/narrative/');
+                    //$location.path('/narrative/');
+                    setupRootScope($rootScope, $state, $stateParams)
                     $scope.$apply();
-                    window.location.reload();
+
+                    $scope.$apply(function() {
+                        $state.go('narratives.featured')
+                    })
+
+
                     
                 } else {
                     console.log("error logging in");
