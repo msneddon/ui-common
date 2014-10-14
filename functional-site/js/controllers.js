@@ -632,6 +632,21 @@ app.controller('RxnDetail', function($scope, $stateParams) {
 })
 
 
+.controller('NarrativeMethods', function($scope, $stateParams) {
+    $scope.params = { 'methodid':$stateParams.methodid, 'kbCache' : kb }
+    $( "#sortable-landing" ).sortable({placeholder: "drag-placeholder", 
+        handle: '.panel-heading',
+        cancel: '.panel-title,.panel-subtitle,.label,.glyphicon',
+        start: function() {
+          $(this).find('.panel-body').addClass('hide');
+          $(this).sortable('refreshPositions');
+        },
+        stop: function() {
+          $(this).find('.panel-body').removeClass('hide');
+        }
+    });
+})
+
 .controller('TreeDetail', function($scope, $stateParams) {
     $scope.params = {'id': $stateParams.id,
                      'ws': $stateParams.ws};

@@ -23,7 +23,7 @@ var app = angular.module('landing-pages',
     ['lp-directives', 'card-directives',
      'trees-directives',
      'ws-directives', 'modeling-directives', 
-     'communities-directives', 'narrative-directives', 
+     'communities-directives', 'narrative-directives', 'narrativestore-directives',
      'ui.router', 'ngResource', 'kbaseLogin', 
      'FeedLoad', 'ui.bootstrap', 'search'])
     .config(['$locationProvider', '$stateProvider', '$httpProvider', '$urlRouterProvider',
@@ -509,6 +509,12 @@ OLD STYLE GENE LANDING PAGE WITH CARDS ARE NO LONGER USED...
 		templateUrl: 'views/objects/kidledt.html',
 		controller: 'KidlEdtDetail'});
 
+    $stateProvider
+	.state('narrativemethod',
+		{url: '/narrativestore/method/:methodid',
+		templateUrl: 'views/narrative/store/method-landing-page.html',
+		controller: 'NarrativeMethods'});  
+    
     $urlRouterProvider.when('', '/login/')
                       .when('/', '/login/')
                       .when('#', '/login/');
