@@ -8,36 +8,27 @@
 	
 	
         options: {
-            appData:null,
-	    wsUserInfoUrl:"https://dev04.berkeley.kbase.us:7058",
-	    appDataRef:"",
+            methodId:null,
+	    narrativeStoreUrl:"http://dev19.berkeley.kbase.us/narrative_method_store",
             kbCache:{},
         },
 	
-	wsUserInfoClient:null,
 	loggedIn:false,
 	loggedInUserId:null,
-	userInfoData:null,
-	isMe:false,
 	
 	$alertPanel:null,
 	$mainPanel:null,
+	
+	narstore: null,
+	methodFullInfo: null,
 	
         init: function(options) {
             this._super(options);
             var self = this;
 	    
-	    
-	    return this;
-	
-	    console.log(options.appData);
-	    
-            if (options.wsUserInfoUrl) {
-		if (options.kbCache.token) {
-		    self.wsUserInfoClient = new Workspace(options.wsUserInfoUrl, {token: self.options.kbCache.token});
-		    self.loggedIn = true;
-		    self.loggedInUserId = $('<div></div>').kbaseLogin().get_kbase_cookie('user_id');;
-		}
+	    if (options.kbCache.token) {
+		self.loggedIn = true;
+		self.loggedInUserId = $('<div></div>').kbaseLogin().get_kbase_cookie('user_id');
             }
 	    
 	    // setup the alert panel
@@ -46,52 +37,94 @@
             self.$mainPanel = $("<div></div>").css("overflow","auto");
 	    self.$elem.append(self.$mainPanel);
 	    
-          // self.render();
+	    // create the client
+	    self.narstore = new NarrativeMethodStore(self.options.narrativeStoreUrl+"/rpc");
+	    
+            //self.render();
+	    
+	    self.fetchMethodInfoAndRender();
 	    
 	    return this;
 	},
- /*	 "name":"Sample App",
-	 "ver"
-    "author_user_ids":["msneddon","wstester3"],
-    "description":"This is a sample app that does some things and performs some analysis by calling some services.",
-    "src_code_url":"https://github.com/kbase/narrative",
-    "rank":44,
-    "usage":{
-        "n_users_installed": 138,
-        "n_times_run":23857
-    },
-    "screenshots":[],
-    "exampleNarratives":[]*/
+ 
+	
+	
+	fetchMethodInfoAndRender: function() {
+	    var self = this;
+	    
+            self.narstore.get_method_full_info({ids:[self.options.methodId]},
+                function(data) {
+		    self.methodFullInfo = data[0];
+		    self.render();
+		},
+		function(err) {
+                    self.$alertPanel.append('<div class="alert alert-warning" role="alert"><b>There is no Narrative Method with id <i>'+self.options.methodId+'</i></b>.</div>');
+		    console.error(err);
+		    // show a list of narrative methods
+		    self.narstore.list_methods({},
+			function(data) {
+			    var $listDiv = $('<div>');
+			    for(var i=0; i<data.length; i++) {
+				$listDiv.append(
+				    $('<a href="#/narrativestore/method/'+data[i]['id']+'">' + data[i]['name'] +'</a><br>')
+				)
+			    }
+			    self.$mainPanel.append($listDiv);
+			},
+			function(err) {
+			    console.error(err);
+			});
+		});
+	    
+	},
+	
+	
 	
 	render: function() {
 	    var self = this;
-	    var ad = self.options.appData;
+	    var m = self.methodFullInfo;
+	    console.log(m);
 	    
 	    var $header = $('<div>').addClass("row").css("width","95%");
 	    
 	    var $basicInfo = $('<div>').addClass("col-md-8");
-	    $basicInfo.append('<div><strong>Version: </strong>&nbsp&nbsp'+ad['version']+"</div>");
-	    $basicInfo.append('<div><strong>Release Date: </strong>&nbsp&nbsp'+ad['release_date']+"</div>");
-	    var $authors = $('<div>');
-	    for(var k=0; k<ad['author_user_ids'].length; k++) {
-		if (k==0) {
-		    $authors.append('<strong>Authors: </strong>&nbsp&nbsp<a href="#/people/'+ad['author_user_ids'][k]+'">'+ad['author_user_ids'][k]+"</a>");
-		} else {
-		    $authors.append(', <a href="#/people/'+ad['author_user_ids'][k]+'">'+ad['author_user_ids'][k]+"</a>");
-		}
+	    
+	    //var verString
+	    
+	    $basicInfo.append('<div><h2>'+m['name']+'</h2>');
+	    if (m['subtitle']) {
+		$basicInfo.append('<div><h4>'+m['subtitle']+'</h4></div>');
 	    }
-	    $basicInfo.append($authors);
-	    $basicInfo.append('<div><strong>Description: </strong>&nbsp&nbsp'+ad['description']+"</div>");
+	    if (m['ver']) {
+		$basicInfo.append('<div><strong>Version: </strong>&nbsp&nbsp'+m['ver']+"</div>");
+	    }
 	    
+	    if (m['contact']) {
+		$basicInfo.append('<div><strong>Help or Questions? Contact: </strong>&nbsp&nbsp'+m['contact']+"</div>");
+	    }
 	    
-	    $basicInfo.append('<br><div><strong>Input Types: </strong>&nbsp&nbspKBaseGenomes.Genome</div>');
-	    $basicInfo.append('<div><strong>Output Types: </strong>&nbsp&nbspKBaseTrees.Tree</div>');
+	    if (m['authors']) {
+		var $authors = $('<div>');
+		for(var k=0; k<m['author'].length; k++) {
+		    if (k==0) {
+			$authors.append('<strong>Authors: </strong>&nbsp&nbsp'+m['authors'][k]);
+		    } else {
+			$authors.append(', '+ad['authors'][k]);
+		    }
+		}
+		$basicInfo.append($authors);
+	    }
 	    
-	    var $topButtons = $('<div>').addClass("col-md-4").css("text-align","right").append(
+	    /*$basicInfo.append('<br><div><strong>Input Types: </strong>&nbsp&nbspKBaseGenomes.Genome</div>');
+	    $basicInfo.append('<div><strong>Output Types: </strong>&nbsp&nbspKBaseTrees.Tree</div>');*/
+	    
+	    var $topButtons = $('<div>').addClass("col-md-4").css("text-align","right")
+				    /*.append(
 				      '<div>' +
 					'<h4><span class="label label-primary">#18 in the App Gallery</span></h4>' +
 				      '</div>'
-				    ).append(
+				    )*/
+				    .append(
 				      '<div class="btn-group">' +
 					'<button id="saveapp" class="btn btn-default">Save to Favorites</button>' +
 					'<button id="launchapp" class="btn btn-default">Launch in New Narrative</button>' +
@@ -110,45 +143,35 @@
 	    $header.append($basicInfo);
 	    $header.append($topButtons);
 	    
-	    
-	    
 	    self.$mainPanel.append($header);
 	    
-	    var imgHtml = "";
-	    if (ad['name'] === 'Sample App') {
-		imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
-			'<img src="assets/images/social/sample_app11.png" width="100%">' +
-			'</div></td>';
-		imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
-			'<img src="assets/images/social/sample_app12.png" width="100%">' +
-			'</div></td>';
-		imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
-			'<img src="assets/images/social/sample_app13.png" width="100%">' +
-			'</div></td>';
-		imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
-			'<img src="assets/images/social/sample_app14.png" width="100%">' +
-			'</div></td>';
-		imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
-			'<img src="assets/images/social/sample_app15.png" width="100%">' +
-			'</div></td>';
-	    } else {
-		for (var p=0; p<8; p++) {
-		    imgHtml += '<td style="padding:10px;"><div style="background-color: gray; border: 1px solid black; padding-left:25px; padding-top:25px; width: 250px; height:250px;">'+
-			'<br><h3>No Screenshot Available</h3>' +
+	    
+	    var $descriptionPanels = $('<div>').addClass("row").css("width","95%");
+	    var $description = $('<div>').addClass("col-md-12");
+	    if (m['description']) {
+		$description.append('<div><hr>'+m['description']+"</div>");
+	    }
+	    $descriptionPanels.append($description);
+	    
+	    self.$mainPanel.append($descriptionPanels);
+	    
+	    if (m['screenshots']) {
+		var imgHtml = '';
+		for(var s=0; s<m['screenshots'].length; s++) {
+		    imgHtml += '<td style="padding:10px;"><div style="border: 1px solid black; width: 350px; height:250px;">'+
+			'<img src="'+self.options.narrativeStoreUrl + m['screenshots'][s]['url']  +'" width="100%">' +
 			'</div></td>';
 		}
+		var $ssPanel = $("<div>").append(
+		    '<br><br><div style="width:95%;overflow:auto;">'+
+			'<table style="border:0px;"><tr>'+
+			imgHtml +
+			'</tr></table>'+
+		    '</div>'
+		);
+	       
+		self.$mainPanel.append($ssPanel);
 	    }
-	    
-	    
-	    var $ssPanel = $("<div>").append(
-		'<br><br><div style="width:95%;overflow:auto;">'+
-		    '<table style="border:0px;"><tr>'+
-		    imgHtml +
-		    '</tr></table>'+
-		'</div>'
-	    );
-	   
-	    self.$mainPanel.append($ssPanel);
 	}
 
     });
