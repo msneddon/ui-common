@@ -513,6 +513,12 @@ OLD STYLE GENE LANDING PAGE WITH CARDS ARE NO LONGER USED...
 	.state('narrativemethod',
 		{url: '/narrativestore/method/:methodid',
 		templateUrl: 'views/narrative/store/method-landing-page.html',
+		controller: 'NarrativeMethods'});
+        
+    $stateProvider
+	.state('narrativemethodlist',
+		{url: '/narrativestore/method',
+		templateUrl: 'views/narrative/store/method-landing-page.html',
 		controller: 'NarrativeMethods'});  
     
     $urlRouterProvider.when('', '/login/')

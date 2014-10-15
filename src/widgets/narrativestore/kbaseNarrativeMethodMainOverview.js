@@ -40,8 +40,7 @@
 	    // create the client
 	    self.narstore = new NarrativeMethodStore(self.options.narrativeStoreUrl+"/rpc");
 	    
-            //self.render();
-	    
+	    // get the data and render
 	    self.fetchMethodInfoAndRender();
 	    
 	    return this;
@@ -51,30 +50,22 @@
 	
 	fetchMethodInfoAndRender: function() {
 	    var self = this;
-	    
-            self.narstore.get_method_full_info({ids:[self.options.methodId]},
-                function(data) {
-		    self.methodFullInfo = data[0];
-		    self.render();
-		},
-		function(err) {
-                    self.$alertPanel.append('<div class="alert alert-warning" role="alert"><b>There is no Narrative Method with id <i>'+self.options.methodId+'</i></b>.</div>');
-		    console.error(err);
-		    // show a list of narrative methods
-		    self.narstore.list_methods({},
-			function(data) {
-			    var $listDiv = $('<div>');
-			    for(var i=0; i<data.length; i++) {
-				$listDiv.append(
-				    $('<a href="#/narrativestore/method/'+data[i]['id']+'">' + data[i]['name'] +'</a><br>')
-				)
-			    }
-			    self.$mainPanel.append($listDiv);
-			},
-			function(err) {
-			    console.error(err);
-			});
-		});
+	    if (self.options.methodId) {
+		self.narstore.get_method_full_info({ids:[self.options.methodId]},
+		    function(data) {
+			self.methodFullInfo = data[0];
+			self.render();
+		    },
+		    function(err) {
+			self.$alertPanel.append('<div class="alert alert-warning" role="alert"><b>There is no Narrative Method with id <i>'+self.options.methodId+'</i></b>.</div>');
+			console.error(err);
+			// show a list of narrative methods
+			self.renderMethodList();
+			
+		    });
+	    } else {
+		self.renderMethodList();
+	    }
 	    
 	},
 	
@@ -126,18 +117,18 @@
 				    )*/
 				    .append(
 				      '<div class="btn-group">' +
-					'<button id="saveapp" class="btn btn-default">Save to Favorites</button>' +
-					'<button id="launchapp" class="btn btn-default">Launch in New Narrative</button>' +
+					//'<button id="savemetod" class="btn btn-default">Save to Favorites</button>' +
+					'<button id="launchmethod" class="btn btn-default">Launch in New Narrative</button>' +
 				      '</div>'  
 				    );
 	    
-	    $topButtons.find("#saveapp").click(function(e) {
+	   /* $topButtons.find("#savemethod").click(function(e) {
 		    e.preventDefault(); //to prevent standard click event
-		    alert("This button should save/install this App so it can be found easily in the Narrative list of functions for the user.");
-		});
-	    $topButtons.find("#launchapp").click(function(e) {
+		    alert("This button should save this Method for the user so it can be found easily in the Narrative list of functions for the user.");
+		});*/
+	    $topButtons.find("#launchmethod").click(function(e) {
 		    e.preventDefault(); //to prevent standard click event
-		    alert("This should create a new narrative populated with this App.");
+		    alert("This should create a new narrative populated with this Method.");
 		});
 	    
 	    $header.append($basicInfo);
@@ -172,6 +163,48 @@
 	       
 		self.$mainPanel.append($ssPanel);
 	    }
+	},
+	
+	
+	
+	renderMethodList : function() {
+	    var self = this;
+	    
+	    self.narstore.list_methods({},
+		function(data) {
+		    
+		    var methodsData = [];
+		    for(var i=0; i<data.length; i++) {
+			methodsData.push({
+			    name:'<a href="#/narrativestore/method/'+data[i]['id']+'">' + data[i]['name'] +'</a>',
+			    description:data[i]['subtitle']
+			});
+		    }
+				    
+		    self.$mainPanel.append('<table cellpadding="0" cellspacing="0" border="0" id="methods-table" \
+					class="table table-bordered table-striped" style="width: 100%; margin-left: 0px; margin-right: 0px;"/>');
+		    
+		    var tableSettings = {
+			//"sPaginationType": "full_numbers",
+			"iDisplayLength": 100,
+			//"aaSorting" : [[1,'asc'],[2,'asc']],  // [[0,'asc']],
+			"sDom": '<f><t><ip>',
+			"aoColumns": [
+			    {sTitle: "Method", mData: "name"}, 
+			    {sTitle: "Quick Description", mData: "description", sWidth:"70%"},
+			],
+			"aaData": methodsData,
+			"oLanguage": {
+			    "sSearch": "&nbsp&nbspSearch Methods:&nbsp&nbsp",
+			    "sEmptyTable": "No Narrative Methods listed."
+			}
+		    };
+		    
+		    var methodsTable = self.$elem.find('#methods-table').dataTable(tableSettings);
+		},
+		function(err) {
+		    console.error(err);
+		});
 	}
 
     });
