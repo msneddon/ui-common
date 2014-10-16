@@ -18,9 +18,11 @@
 	
 	$alertPanel:null,
 	$mainPanel:null,
+	$specPanel:null,
 	
 	narstore: null,
 	methodFullInfo: null,
+	methodSpec: null,
 	
         init: function(options) {
             this._super(options);
@@ -36,12 +38,15 @@
 	    self.$elem.append(self.$alertPanel);
             self.$mainPanel = $("<div></div>").css("overflow","auto");
 	    self.$elem.append(self.$mainPanel);
+            self.$specPanel = $("<div></div>");
+	    self.$elem.append(self.$specPanel);
 	    
 	    // create the client
 	    self.narstore = new NarrativeMethodStore(self.options.narrativeStoreUrl+"/rpc");
 	    
 	    // get the data and render
 	    self.fetchMethodInfoAndRender();
+	    self.fetchSpecInfoAndRender();
 	    
 	    return this;
 	},
@@ -54,7 +59,7 @@
 		self.narstore.get_method_full_info({ids:[self.options.methodId]},
 		    function(data) {
 			self.methodFullInfo = data[0];
-			self.render();
+			self.renderMainPanel();
 		    },
 		    function(err) {
 			self.$alertPanel.append('<div class="alert alert-warning" role="alert"><b>There is no Narrative Method with id <i>'+self.options.methodId+'</i></b>.</div>');
@@ -69,9 +74,7 @@
 	    
 	},
 	
-	
-	
-	render: function() {
+	renderMainPanel: function() {
 	    var self = this;
 	    var m = self.methodFullInfo;
 	    console.log(m);
@@ -163,9 +166,60 @@
 	       
 		self.$mainPanel.append($ssPanel);
 	    }
+	    
+	    if (m['technical_description']) {
+		var $techDetailsDiv = $('<div>')
+					.append("<hr><h4>Technical Details</h4>")
+					.append(m['technical_description']+"<br>");
+		self.$mainPanel.append($techDetailsDiv);
+	    }
+	    
+	    
 	},
 	
 	
+	
+	fetchSpecInfoAndRender: function() {
+	    var self = this;
+	    if (self.options.methodId) {
+		self.narstore.get_method_spec({ids:[self.options.methodId]},
+		    function(data) {
+			self.methodSpec = data[0];
+			self.renderSpecPanel();
+		    },
+		    function(err) {
+			console.error(err);
+		    });
+	    }
+	    
+	},
+	renderSpecPanel: function() {
+	    var self = this;
+	    var spec = self.methodSpec;
+	    console.log(spec);
+	    
+	    self.$specPanel.append("<hr><h4>Technical Parameter Details</h4>");
+	    
+	    var $paramGroupDiv = $('<div>');
+	    for(var p=0; p<spec['parameters'].length; p++) {
+		var param = spec['parameters'][p];
+		
+		var $paramDiv = $('<div>');
+		
+		var spacer = "&nbsp&nbsp&nbsp&nbsp"; // todo: improve this terrible styling!
+		
+		$paramDiv.append('<strong>Parameter ' +(p+1)+ ":</strong><br>");
+		$paramDiv.append(spacer+ '<strong>' +param['ui_name']+ "</strong> (id=<i>"+param['id']+"</i>)<br>");
+		
+		$paramDiv.append(spacer +spacer+'<i>Short Description:</i> &nbsp' +param['short_hint']+ "<br>");
+		$paramDiv.append(spacer +spacer+'<i>Long Description:</i> &nbsp' +param['long_hint']+ "<br>");
+		
+		$paramGroupDiv.append($paramDiv).append("<br>");
+	    }
+	    self.$specPanel.append($paramGroupDiv);
+	    
+	    
+	},
 	
 	renderMethodList : function() {
 	    var self = this;
