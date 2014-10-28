@@ -99,7 +99,7 @@
 	    
 	    if (m['authors']) {
 		var $authors = $('<div>');
-		for(var k=0; k<m['author'].length; k++) {
+		for(var k=0; k<m['authors'].length; k++) {
 		    if (k==0) {
 			$authors.append('<strong>Authors: </strong>&nbsp&nbsp'+m['authors'][k]);
 		    } else {
