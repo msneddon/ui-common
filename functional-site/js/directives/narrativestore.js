@@ -21,7 +21,7 @@ angular.module('narrativestore-directives')
             
             $(p.body()).KBaseNarrativeMethodMainOverview({
 		methodId:methodId,
-		narrativeStoreUrl:"http://dev19.berkeley.kbase.us/narrative_method_store",
+		narrativeStoreUrl:"https://kbase.us/services/narrative_method_store",
 		kbCache:scope.params.kbCache
             });
 	}

@@ -9,7 +9,7 @@
 	
         options: {
             methodId:null,
-	    narrativeStoreUrl:"https://kbase.us/services/narrative_method_store/rpc",
+	    narrativeStoreUrl:"https://kbase.us/services/narrative_method_store",
             kbCache:{},
         },
 	
